@@ -3,7 +3,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.madkroll.snake</groupId>
-    <artifactId>assignment-reactive-snake</artifactId>
+    <artifactId>snake-backend</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
@@ -14,7 +14,7 @@
     </parent>
 
     <modules>
-        <module>snake-service</module>
+        <module>snake-web</module>
     </modules>
 
     <properties>

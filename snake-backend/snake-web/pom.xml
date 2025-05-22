@@ -6,11 +6,11 @@
 
     <parent>
         <groupId>com.madkroll.snake</groupId>
-        <artifactId>assignment-reactive-snake</artifactId>
+        <artifactId>snake-backend</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>snake-service</artifactId>
+    <artifactId>snake-web</artifactId>
     <packaging>jar</packaging>
 
     <dependencies>
