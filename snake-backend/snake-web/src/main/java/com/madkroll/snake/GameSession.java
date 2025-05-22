@@ -9,6 +9,7 @@ import java.util.List;
 @Getter
 public class GameSession {
 
+    private final long turn;
     private final Grid grid;
     private final List<SnakePart> snake;
     private final Fruit fruit;

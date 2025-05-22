@@ -29,10 +29,12 @@ public class GameController {
         snake.add(new SnakePart(5, 5));
         snake.add(new SnakePart(5, 6));
         Grid grid = new Grid(10, 10);
+        Fruit fruit = new Fruit(1, 1);
         GameSession gameSession = new GameSession(
+                0L,
                 grid,
                 snake,
-                new Fruit(1, 1)
+                fruit
         );
 
         return ResponseEntity.ok(gameSession);

@@ -1,7 +1,6 @@
 - start new game (single user)
     - start button
-    - new empty grid
-        - fix CORS
+    - fix CORS
     - random starting position for snake
     - random safe starting direction for snake
 
