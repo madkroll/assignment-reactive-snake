@@ -43,6 +43,10 @@
     .snake-head {
       background-color: green;
     }
+
+    .fruit {
+      background-color: darkred;
+    }
   </style>
 </head>
 
@@ -74,10 +78,14 @@
         grid.appendChild(cell);
       }
 
+      const fruitPartInGridIndex = data.fruit.y * width + data.fruit.x;
+      // Mark cell as fruit
+      grid.children[fruitPartInGridIndex].classList.add('fruit');
+
       for (let i = 0; i < data.snake.length; i++) {
         const snakePartInGridIndex = data.snake[i].y * width + data.snake[i].x;
 
-        let snakeStyle = i == 0 ? 'snake-head' : 'snake';
+        let snakeStyle = i === 0 ? 'snake-head' : 'snake';
 
         // Mark cell as snake
         grid.children[snakePartInGridIndex].classList.add(snakeStyle);

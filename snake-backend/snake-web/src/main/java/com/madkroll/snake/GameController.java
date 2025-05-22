@@ -31,7 +31,8 @@ public class GameController {
         Grid grid = new Grid(10, 10);
         GameSession gameSession = new GameSession(
                 grid,
-                snake
+                snake,
+                new Fruit(1, 1)
         );
 
         return ResponseEntity.ok(gameSession);

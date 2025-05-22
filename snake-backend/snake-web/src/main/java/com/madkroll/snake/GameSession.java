@@ -11,4 +11,5 @@ public class GameSession {
 
     private final Grid grid;
     private final List<SnakePart> snake;
+    private final Fruit fruit;
 }
