@@ -20,14 +20,59 @@
 
   <link rel="manifest" href="site.webmanifest">
   <meta name="theme-color" content="#fafafa">
+
+  <style>
+    #grid {
+      display: grid;
+      gap: 1px;
+      margin: 20px auto;
+      width: fit-content;
+    }
+
+    .cell {
+      width: 20px;
+      height: 20px;
+      background-color: #f0f0f0;
+      border: 1px solid #ccc;
+    }
+  </style>
 </head>
 
 <body>
 
-  <!-- Add your site or application content here -->
-  <p>Hello world! This is HTML5 Boilerplate.</p>
-  <script src="js/app.js"></script>
+<p>Snake Game</p>
+<button>Start</button>
+
+<script src="js/app.js"></script>
+<div id="game-view">
+  <div id="grid" style="display: grid; width: 400px;"></div>
+</div>
+
+<script>
+  async function initGrid() {
+    try {
+      const response = await fetch('http://localhost:8080/game/start');
+      const data = await response.json();
+
+      const width = data.grid.width;
+      const height = data.grid.height;
+
+      const grid = document.getElementById('grid');
+      grid.style.gridTemplateColumns = `repeat(${width}, 20px)`;
+
+      for (let i = 0; i < width * height; i++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        grid.appendChild(cell);
+      }
+
+    } catch (error) {
+      console.error('Failed to initialize grid:', error);
+    }
+  }
+
+  initGrid();
+</script>
 
 </body>
-
 </html>
