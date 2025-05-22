@@ -8,6 +8,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
+import java.util.LinkedList;
+import java.util.List;
+
 // TODO: fix it by putting reversed proxy in front of client and server
 @CrossOrigin(origins = "http://localhost:63342")
 @RestController
@@ -20,6 +23,17 @@ public class GameController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity<GameSession> startNewGame() {
-        return ResponseEntity.ok(new GameSession(new Grid(10, 10)));
+        // game session initialization
+        List<SnakePart> snake = new LinkedList<>();
+        snake.add(new SnakePart(5, 4));
+        snake.add(new SnakePart(5, 5));
+        snake.add(new SnakePart(5, 6));
+        Grid grid = new Grid(10, 10);
+        GameSession gameSession = new GameSession(
+                grid,
+                snake
+        );
+
+        return ResponseEntity.ok(gameSession);
     }
 }

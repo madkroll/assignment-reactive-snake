@@ -35,6 +35,14 @@
       background-color: #f0f0f0;
       border: 1px solid #ccc;
     }
+
+    .snake {
+      background-color: #015501;
+    }
+
+    .snake-head {
+      background-color: green;
+    }
   </style>
 </head>
 
@@ -66,6 +74,14 @@
         grid.appendChild(cell);
       }
 
+      for (let i = 0; i < data.snake.length; i++) {
+        const snakePartInGridIndex = data.snake[i].y * width + data.snake[i].x;
+
+        let snakeStyle = i == 0 ? 'snake-head' : 'snake';
+
+        // Mark cell as snake
+        grid.children[snakePartInGridIndex].classList.add(snakeStyle);
+      }
     } catch (error) {
       console.error('Failed to initialize grid:', error);
     }
