@@ -1,0 +1,14 @@
+- start new game (single user)
+    - start button
+    - new empty grid
+    - random starting position for snake
+    - random safe starting direction for snake
+
+- turns
+    - every fixed period (rate) turn happens
+
+- movement
+    - snake moves forward every turn
+    - snake can't move instantly back, can only turn or move forward
+    - snake can't move outside grid boundaries
+    -
