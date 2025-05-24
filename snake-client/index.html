@@ -52,6 +52,42 @@
 
 <body>
 
+<script>
+  // WebSocket initialization
+  const socket = new WebSocket("ws://localhost:8080/ws");
+  socket.onopen = () => {
+    console.log("WebSocket connection opened");
+  };
+
+  socket.onmessage = (event) => {
+    console.log("Message from server:", event.data);
+  };
+
+  socket.onerror = (error) => {
+    console.error("WebSocket error:", error);
+  };
+</script>
+
+<script>
+  // Snake controls
+  document.addEventListener("keydown", (event) => {
+    if (event.code === "ArrowLeft") {
+      turnSnake("left");
+    } else if (event.code === "ArrowRight") {
+      turnSnake("right");
+    }
+  });
+
+  function turnSnake(direction) {
+    const message = {
+      type: "move",
+      direction: direction
+    };
+    socket.send(JSON.stringify(message));
+    console.log("Sent message:", message);
+  }
+</script>
+
 <p>Snake Game</p>
 <button>Start</button>
 
@@ -107,11 +143,11 @@
 
   const eventSource = new EventSource('http://localhost:8080/game/turn');
 
-  eventSource.onmessage = function(event) {
+  eventSource.onmessage = function (event) {
     counterDiv.innerText = `${event.data}`;
   };
 
-  eventSource.onerror = function(err) {
+  eventSource.onerror = function (err) {
     console.error("SSE error:", err);
     counterDiv.innerText = 'Disconnected';
   };
