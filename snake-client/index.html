@@ -102,5 +102,20 @@
   initGrid();
 </script>
 
+<script>
+  const counterDiv = document.getElementById('turn');
+
+  const eventSource = new EventSource('http://localhost:8080/game/turn');
+
+  eventSource.onmessage = function(event) {
+    counterDiv.innerText = `${event.data}`;
+  };
+
+  eventSource.onerror = function(err) {
+    console.error("SSE error:", err);
+    counterDiv.innerText = 'Disconnected';
+  };
+</script>
+
 </body>
 </html>

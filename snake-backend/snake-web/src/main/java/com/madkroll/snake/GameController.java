@@ -7,9 +7,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import reactor.core.publisher.Flux;
 
+import java.time.Duration;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 // TODO: fix it by putting reversed proxy in front of client and server
 @CrossOrigin(origins = "http://localhost:63342")
@@ -38,5 +41,13 @@ public class GameController {
         );
 
         return ResponseEntity.ok(gameSession);
+    }
+
+    @GetMapping(
+            path = "/turn",
+            produces = MediaType.TEXT_EVENT_STREAM_VALUE
+    )
+    public Flux<Long> turn() {
+        return Flux.interval(Duration.ofMillis(500));
     }
 }

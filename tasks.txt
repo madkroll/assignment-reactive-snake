@@ -1,3 +1,6 @@
+Limitations:
+- single session
+
 - start new game (single user)
     - start button
     - fix CORS
@@ -12,3 +15,15 @@
     - snake can't move instantly back, can only turn or move forward
     - snake can't move outside grid boundaries
     -
+
+ During turn:
+ - turn counter increments
+ - snake moves towards direction
+ - snake hits the obstacle and dies
+ - snake reaches the fruit and eats it, becomes longer, fruit disappears
+
+Events:
+- send next turn every X ms
+- player joins
+- player turns
+- player lost
