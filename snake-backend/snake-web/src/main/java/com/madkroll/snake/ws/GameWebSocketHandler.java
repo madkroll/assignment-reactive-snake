@@ -2,21 +2,39 @@ package com.madkroll.snake.ws;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.madkroll.snake.state.Player;
+import com.madkroll.snake.ws.events.PlayerConnected;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import java.util.Map;
+import java.util.UUID;
+
 @Slf4j
+@Component
+@AllArgsConstructor
 public class GameWebSocketHandler extends TextWebSocketHandler {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final Map<String, Player> connectedPlayersRegistry;
+    private final ObjectMapper objectMapper;
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         log.info("New connection established");
-        session.sendMessage(new TextMessage("{\"type\":\"welcome\", \"message\":\"Connected to server!\"}"));
+        Player player = new Player(
+                UUID.randomUUID().toString(),
+                session
+        );
+
+        connectedPlayersRegistry.put(session.getId(), player);
+
+        // notify that user is registered
+        session.sendMessage(new TextMessage(objectMapper.writeValueAsString(new PlayerConnected(player.getId(), session.getId()))));
     }
 
     @Override
@@ -46,5 +64,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         log.info("Connection closed: {}", session.getId());
+        Player player = connectedPlayersRegistry.remove(session.getId());
+        log.info("Player unregistered: {}", player.getId());
     }
 }

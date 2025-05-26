@@ -1,16 +1,19 @@
-package com.madkroll.snake.state;
+package com.madkroll.snake.context;
 
 import com.madkroll.snake.rest.data.StartGameRequest;
+import com.madkroll.snake.state.GameSession;
+import com.madkroll.snake.state.Grid;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Component
+@AllArgsConstructor
 public class GameSessionManager {
 
-    private final Map<String, GameSession> activeSessions = new ConcurrentHashMap<>();
+    private final Map<String, GameSession> activeSessionsRegistry;
 
     public final GameSession startNewSession(final StartGameRequest startGameRequest) {
         Grid grid = new Grid(startGameRequest.width(), startGameRequest.height());
@@ -20,7 +23,7 @@ public class GameSessionManager {
                 0L,
                 grid
         );
-        activeSessions.put(gameSession.getId(), gameSession);
+        activeSessionsRegistry.put(gameSession.getId(), gameSession);
 
         return gameSession;
     }

@@ -2,7 +2,7 @@ package com.madkroll.snake.rest;
 
 import com.madkroll.snake.rest.data.StartGameRequest;
 import com.madkroll.snake.state.GameSession;
-import com.madkroll.snake.state.GameSessionManager;
+import com.madkroll.snake.context.GameSessionManager;
 import lombok.AllArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

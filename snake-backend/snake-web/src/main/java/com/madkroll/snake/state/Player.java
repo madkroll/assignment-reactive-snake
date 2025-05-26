@@ -2,12 +2,12 @@ package com.madkroll.snake.state;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.springframework.web.socket.WebSocketSession;
 
 @Getter
 @AllArgsConstructor
-public class GameSession {
+public class Player {
 
-    private String id;
-    private final long turn;
-    private final Grid grid;
+    String id;
+    WebSocketSession session;
 }
