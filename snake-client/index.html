@@ -172,7 +172,14 @@
 
     for (let i = 0; i < width * height; i++) {
       const cell = document.createElement('div');
-      cell.classList.add('cell');
+      const x = toX(i, width);
+      const y = toY(i, width);
+      if (result.grid.renderables[x][y] === "fruit") {
+        cell.classList.add('fruit');
+      } else {
+        cell.classList.add('cell');
+      }
+
       grid.appendChild(cell);
     }
   }
@@ -180,6 +187,18 @@
   function useGameSessionView() {
     document.getElementById('game-menu-view').style.display = "none";
     document.getElementById('game-session-view').style.display = "block";
+  }
+
+  function toIndex(x, y, width) {
+    return y * width + x;
+  }
+
+  function toX(index, width) {
+    return index % width;
+  }
+
+  function toY(index, width) {
+    return Math.floor(index / width);
   }
 </script>
 
