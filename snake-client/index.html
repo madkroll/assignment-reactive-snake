@@ -22,6 +22,62 @@
   <meta name="theme-color" content="#fafafa">
 
   <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #f9f9f9;
+      font-family: Arial, sans-serif;
+    }
+
+    .game-menu-form {
+      /*display: flex;*/
+      /*flex-direction: column;*/
+      gap: 1rem;
+      padding: 2rem;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .game-menu-form #title {
+      font-weight: bold;
+      text-align: center;
+      font-size: large;
+    }
+
+    .game-menu-form label {
+      font-weight: bold;
+    }
+
+    .game-menu-form select,
+    .game-menu-form input,
+    .game-menu-form button {
+      padding: 0.5rem;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    .game-menu-form button {
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    .game-menu-form button:hover {
+      background-color: #45a049;
+    }
+  </style>
+
+  <style>
     #grid {
       display: grid;
       gap: 1px;
@@ -48,24 +104,188 @@
       background-color: darkred;
     }
   </style>
+
+  <style>
+    h1 {
+      color: #333;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    #active-sessions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .active-session {
+      background: white;
+      padding: 15px 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .active-session:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    }
+  </style>
 </head>
 
 <body>
+<script src="js/app.js"></script>
+
+<div id="viewport" style="display: flex; justify-content: space-between;gap: 300px;">
+  <div id="active-games-view" style="display: flex; flex-direction: column">
+    <h1>Active Games</h1>
+    <div id="active-sessions">
+      <div class="active-session">game-1</div>
+      <div class="active-session">game-2</div>
+      <div class="active-session">game-3</div>
+    </div>
+  </div>
+
+  <div id="game-menu-view" class="game-menu-form">
+    <div id="new-game-menu" style="display: flex; flex-direction: column">
+      <p id="title">New Game</p>
+      <label for="grid-size">Grid Size:</label>
+      <select id="grid-size">
+        <option value="10x10">10x10</option>
+        <option value="15x15">15x15</option>
+        <option value="20x20">20x20</option>
+      </select>
+
+      <label for="turn-rate">Turn Rate (ms):</label>
+      <input type="number" id="turn-rate" value="1000" min="100" step="100"/>
+
+      <button id="start-button">Start</button>
+    </div>
+  </div>
+
+  <div id="game-session-view" style="display: none">
+    <div id="grid" style="display: grid; width: 400px;"></div>
+  </div>
+</div>
 
 <script>
-  // WebSocket initialization
-  const socket = new WebSocket("ws://localhost:8080/ws");
-  socket.onopen = () => {
-    console.log("WebSocket connection opened");
-  };
+  document.getElementById("start-button").addEventListener("click", startNewGame);
 
-  socket.onmessage = (event) => {
-    console.log("Message from server:", event.data);
-  };
+  async function startNewGame() {
+    const size = document.getElementById("grid-size").value;
+    const [width, height] = size.split("x").map(Number);
+    const turnRate = parseInt(document.getElementById("turn-rate").value);
 
-  socket.onerror = (error) => {
-    console.error("WebSocket error:", error);
-  };
+    const payload = {
+      width: width,
+      height: height,
+      turnRate: turnRate
+    };
+
+    try {
+      const response = await fetch("http://localhost:8080/game/start", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await response.json();
+      renderGameSessionView(result);
+      useGameSessionView();
+
+      console.log("Session started:", result);
+    } catch (error) {
+      console.error("Failed to start game:", error);
+    }
+  }
+
+  function renderGameSessionView(result) {
+    const width = result.grid.width;
+    const height = result.grid.height;
+
+    const grid = document.getElementById('grid');
+    grid.style.gridTemplateColumns = `repeat(${width}, 20px)`;
+
+    for (let i = 0; i < width * height; i++) {
+      const cell = document.createElement('div');
+      const x = toX(i, width);
+      const y = toY(i, width);
+      if (result.grid.renderables[x][y] === "fruit") {
+        cell.classList.add('fruit');
+      } else {
+        cell.classList.add('cell');
+      }
+
+      grid.appendChild(cell);
+    }
+  }
+
+  function useGameSessionView() {
+    document.getElementById('game-menu-view').style.display = "none";
+    document.getElementById('game-session-view').style.display = "block";
+  }
+
+  function toIndex(x, y, width) {
+    return y * width + x;
+  }
+
+  function toX(index, width) {
+    return index % width;
+  }
+
+  function toY(index, width) {
+    return Math.floor(index / width);
+  }
+</script>
+
+<script>
+  let socket;
+
+  function connectWebSocket() {
+    socket = new WebSocket("ws://localhost:8080/ws");
+
+    socket.onopen = () => {
+      console.log("✅ WebSocket opened");
+    };
+
+    socket.onmessage = processEvent;
+
+    socket.onclose = () => {
+      console.log("❌ WebSocket closed");
+    };
+
+    socket.onerror = (err) => {
+      console.error("💥 WebSocket error:", err);
+    };
+  }
+
+  window.addEventListener("load", () => {
+    connectWebSocket();
+  });
+
+  function processEvent(event) {
+    const data = JSON.parse(event.data);
+
+    if (data.type === 'active-sessions-response') {
+      renderActiveSessions(data)
+    }
+
+    console.log("Message from server:", data);
+  }
+
+  function renderActiveSessions(data) {
+    console.log(data);
+  }
+
+  window.addEventListener("beforeunload", () => {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.close();
+    }
+  });
 </script>
 
 <script>
@@ -79,6 +299,11 @@
   });
 
   function turnSnake(direction) {
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+      console.warn("WebSocket not ready, cannot send:", direction);
+      return;
+    }
+
     const message = {
       type: "move",
       direction: direction
@@ -88,17 +313,7 @@
   }
 </script>
 
-<p>Snake Game</p>
-<button>Start</button>
-
-<script src="js/app.js"></script>
-<div id="game-view">
-  <div id="grid" style="display: grid; width: 400px;"></div>
-  <label for="turn">Turn: </label>
-  <div id="turn" style="display: grid; width: 400px;"></div>
-</div>
-
-<script>
+<!--<script>
   async function initGrid() {
     try {
       const response = await fetch('http://localhost:8080/game/start');
@@ -136,22 +351,6 @@
   }
 
   initGrid();
-</script>
-
-<script>
-  const counterDiv = document.getElementById('turn');
-
-  const eventSource = new EventSource('http://localhost:8080/game/turn');
-
-  eventSource.onmessage = function (event) {
-    counterDiv.innerText = `${event.data}`;
-  };
-
-  eventSource.onerror = function (err) {
-    console.error("SSE error:", err);
-    counterDiv.innerText = 'Disconnected';
-  };
-</script>
-
+</script>-->
 </body>
 </html>
