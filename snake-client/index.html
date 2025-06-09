@@ -141,11 +141,7 @@
 <div id="viewport" style="display: flex; justify-content: space-between;gap: 300px;">
   <div id="active-games-view" style="display: flex; flex-direction: column">
     <h1>Active Games</h1>
-    <div id="active-sessions">
-      <div class="active-session">game-1</div>
-      <div class="active-session">game-2</div>
-      <div class="active-session">game-3</div>
-    </div>
+    <div id="active-sessions"></div>
   </div>
 
   <div id="game-menu-view" class="game-menu-form">
@@ -171,33 +167,92 @@
 </div>
 
 <script>
-  document.getElementById("start-button").addEventListener("click", startNewGame);
+  let socket;
 
-  async function startNewGame() {
+  window.addEventListener("load", () => {
+    socket = new WebSocket("ws://localhost:8080/ws");
+    socket.onopen = handleConnectionOpened;
+    socket.onclose = handleConnectionClosed;
+    socket.onerror = handleError;
+    socket.onmessage = processMessage;
+  });
+
+  window.addEventListener("beforeunload", () => {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.close();
+    }
+  });
+
+  function handleConnectionOpened() {
+    console.log("WebSocket opened");
+
+  }
+
+  function handleConnectionClosed() {
+    console.log("WebSocket closed");
+  }
+
+  function handleError(err) {
+    console.error("WebSocket error: ", err);
+  }
+
+  function processMessage(message) {
+    console.log("Received message: ", message.data);
+
+    const data = JSON.parse(message.data);
+    if (data.type === 'active-sessions-response') {
+      renderActiveSessions(data)
+    } else if (data.type === 'start-game-response') {
+      renderGameSessionView(data.payload);
+      useGameSessionView();
+
+      console.log("Session started:", data);
+    }
+  }
+
+  function renderActiveSessions(data) {
+    console.log("Active Sessions: ", data);
+
+    let activeSessions = document.getElementById("active-sessions");
+    while (activeSessions.firstChild) {
+      activeSessions.removeChild(activeSessions.firstChild);
+    }
+
+    if (Array.isArray(data.payload) && data.payload.length !== 0) {
+      data.payload.forEach(activeSession => {
+        const activeSessionElement = document.createElement('div');
+        activeSessionElement.classList.add('active-session');
+        activeSessionElement.innerText = activeSession;
+        activeSessions.appendChild(activeSessionElement);
+      });
+    } else {
+      const noSessions = document.createElement('div');
+      noSessions.classList.add('active-session');
+      noSessions.innerText = "no active games";
+      activeSessions.appendChild(noSessions);
+    }
+  }
+</script>
+
+<script>
+  document.getElementById("start-button").addEventListener("click", requestNewGame);
+
+  async function requestNewGame() {
     const size = document.getElementById("grid-size").value;
     const [width, height] = size.split("x").map(Number);
     const turnRate = parseInt(document.getElementById("turn-rate").value);
 
-    const payload = {
-      width: width,
-      height: height,
-      turnRate: turnRate
+    const startGameRequest = {
+      type: "start-game-request",
+      payload: {
+        width: width,
+        height: height,
+        turnRate: turnRate
+      }
     };
 
     try {
-      const response = await fetch("http://localhost:8080/game/start", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
-      });
-
-      const result = await response.json();
-      renderGameSessionView(result);
-      useGameSessionView();
-
-      console.log("Session started:", result);
+      socket.send(JSON.stringify(startGameRequest));
     } catch (error) {
       console.error("Failed to start game:", error);
     }
@@ -240,52 +295,6 @@
   function toY(index, width) {
     return Math.floor(index / width);
   }
-</script>
-
-<script>
-  let socket;
-
-  function connectWebSocket() {
-    socket = new WebSocket("ws://localhost:8080/ws");
-
-    socket.onopen = () => {
-      console.log("✅ WebSocket opened");
-    };
-
-    socket.onmessage = processEvent;
-
-    socket.onclose = () => {
-      console.log("❌ WebSocket closed");
-    };
-
-    socket.onerror = (err) => {
-      console.error("💥 WebSocket error:", err);
-    };
-  }
-
-  window.addEventListener("load", () => {
-    connectWebSocket();
-  });
-
-  function processEvent(event) {
-    const data = JSON.parse(event.data);
-
-    if (data.type === 'active-sessions-response') {
-      renderActiveSessions(data)
-    }
-
-    console.log("Message from server:", data);
-  }
-
-  function renderActiveSessions(data) {
-    console.log(data);
-  }
-
-  window.addEventListener("beforeunload", () => {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      socket.close();
-    }
-  });
 </script>
 
 <script>

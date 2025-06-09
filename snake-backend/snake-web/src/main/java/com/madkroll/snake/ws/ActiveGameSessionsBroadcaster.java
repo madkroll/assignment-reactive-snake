@@ -3,7 +3,7 @@ package com.madkroll.snake.ws;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.madkroll.snake.context.GameSessionManager;
-import com.madkroll.snake.ws.events.ActiveSessionsUpdate;
+import com.madkroll.snake.ws.events.MessageData;
 import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +42,7 @@ public class ActiveGameSessionsBroadcaster {
         log.info("Subscribed");
         subscriberCount.incrementAndGet();
         return sink.asFlux()
+                .map(activeSessions -> new MessageData("active-sessions-response", activeSessions))
                 .map(this::toJson)
                 .doFinally(signalType -> {
                     log.info("Unsubscribing from broadcast");
@@ -49,9 +50,9 @@ public class ActiveGameSessionsBroadcaster {
                 });
     }
 
-    private String toJson(List<String> activeSessions) {
+    private String toJson(MessageData message) {
         try {
-            return objectMapper.writeValueAsString(new ActiveSessionsUpdate(activeSessions));
+            return objectMapper.writeValueAsString(message);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
