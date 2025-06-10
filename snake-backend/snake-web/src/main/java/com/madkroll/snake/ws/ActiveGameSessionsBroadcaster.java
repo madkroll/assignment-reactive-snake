@@ -13,7 +13,6 @@ import reactor.core.publisher.Sinks;
 
 import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @Component
@@ -23,15 +22,15 @@ public class ActiveGameSessionsBroadcaster {
     private final GameSessionManager gameSessionManager;
     private final ObjectMapper objectMapper;
 
-    private final AtomicInteger subscriberCount = new AtomicInteger(0);
     private final Sinks.Many<List<String>> sink = Sinks.many().replay().latest();
 
     @PostConstruct
     public void enableBroadcasting() {
         Flux.interval(Duration.ofSeconds(1))
                 .filter(tick -> {
-                    log.info("Subscribers: {}", subscriberCount.get());
-                    return subscriberCount.get() > 0;
+                    int numberOfSubscribers = sink.currentSubscriberCount();
+                    log.info("Subscribers: {}", numberOfSubscribers);
+                    return numberOfSubscribers > 0;
                 })
                 .doOnNext(tick -> log.info("Broadcasting active sessions"))
                 .map(tick -> gameSessionManager.listActiveSessionsIds())
@@ -40,14 +39,9 @@ public class ActiveGameSessionsBroadcaster {
 
     public Flux<String> subscribe() {
         log.info("Subscribed");
-        subscriberCount.incrementAndGet();
         return sink.asFlux()
                 .map(activeSessions -> new MessageData("active-sessions-response", activeSessions))
-                .map(this::toJson)
-                .doFinally(signalType -> {
-                    log.info("Unsubscribing from broadcast");
-                    subscriberCount.decrementAndGet();
-                });
+                .map(this::toJson);
     }
 
     private String toJson(MessageData message) {

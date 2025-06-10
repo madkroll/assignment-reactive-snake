@@ -7,7 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public class GameSession {
 
-    private String id;
+    private final String id;
     private final long turn;
     private final Grid grid;
 }

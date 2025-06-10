@@ -29,6 +29,4 @@ public class GameWebSocketConfig {
                 ORDER_BEFORE_MVC_ROUTES
         );
     }
-
-
 }
