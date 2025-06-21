@@ -1,11 +1,9 @@
 package com.madkroll.snake.ws;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.madkroll.snake.context.GameSessionManager;
-import com.madkroll.snake.state.GameSession;
-import com.madkroll.snake.ws.events.MessageData;
-import com.madkroll.snake.ws.events.StartGameRequested;
-import lombok.AllArgsConstructor;
+import com.madkroll.snake.ws.feed.lobby.LobbyFeed;
+import com.madkroll.snake.ws.processor.MessageProcessor;
+import com.madkroll.snake.ws.processor.UnknownTypeProcessor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.socket.WebSocketHandler;
@@ -15,15 +13,34 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
+import static java.util.stream.Collectors.toMap;
 
 @Slf4j
 @Component
-@AllArgsConstructor
 public class GameWebSocketHandler implements WebSocketHandler {
 
-    private final ActiveGameSessionsBroadcaster activeGameSessionsBroadcaster;
-    private final GameSessionManager gameSessionManager;
     private final ObjectMapper objectMapper;
+    private final LobbyFeed lobbyFeed;
+    private final UnknownTypeProcessor unknownTypeProcessor;
+    private final Map<String, MessageProcessor> messageProcessors;
+
+    public GameWebSocketHandler(
+            ObjectMapper objectMapper,
+            LobbyFeed lobbyFeed,
+            UnknownTypeProcessor unknownTypeProcessor,
+            List<MessageProcessor> messageProcessors
+    ) {
+        this.objectMapper = objectMapper;
+        this.lobbyFeed = lobbyFeed;
+        this.unknownTypeProcessor = unknownTypeProcessor;
+        this.messageProcessors =
+                messageProcessors
+                        .stream()
+                        .collect(toMap(MessageProcessor::getType, messageProcessor -> messageProcessor));
+    }
 
     @Override
     public Mono<Void> handle(WebSocketSession session) {
@@ -32,22 +49,21 @@ public class GameWebSocketHandler implements WebSocketHandler {
                         .receive()
                         .map(WebSocketMessage::getPayloadAsText)
                         .map(this::parseMessage)
-                        .doOnNext(this::processMessage)
+                        .doOnNext(this::applyProcessor)
                         .then();
 
         Flux<WebSocketMessage> output =
-                activeGameSessionsBroadcaster
-                        .subscribe()
+                lobbyFeed
+                        .provide()
                         .map(session::textMessage);
 
         return session.send(output).and(input);
     }
 
-    private void processMessage(MessageData messageData) {
-        if (messageData.type().equals("start-game-request")) {
-            GameSession gameSession = gameSessionManager.startNewSession(objectMapper.convertValue(messageData.payload(), StartGameRequested.class));
-            log.info("Game session started: {}", gameSession);
-        }
+    private void applyProcessor(MessageData messageData) {
+        messageProcessors
+                .getOrDefault(messageData.type(), unknownTypeProcessor)
+                .process(messageData);
     }
 
     private MessageData parseMessage(String messageAsJson) {
