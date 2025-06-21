@@ -8,12 +8,15 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Slf4j
 @Component
 @AllArgsConstructor
 public class StartGameRequestProcessor implements MessageProcessor {
 
     private static final String TYPE_START_GAME_REQUEST = "start-game-request";
+    private static final String TYPE_START_GAME_RESPONSE = "start-game-response";
 
     private final ObjectMapper objectMapper;
     private final GameSessionManager gameSessionManager;
@@ -23,17 +26,29 @@ public class StartGameRequestProcessor implements MessageProcessor {
         return TYPE_START_GAME_REQUEST;
     }
 
-    public void process(MessageData messageData) {
+    public Optional<MessageData> process(MessageData messageData) {
         GameSession gameSession = gameSessionManager.startNewSession(
                 objectMapper.convertValue(messageData.payload(), StartGameRequestPayload.class)
         );
         log.info("Game session started: {}", gameSession);
+
+        return Optional.of(
+                new MessageData(
+                        TYPE_START_GAME_RESPONSE,
+                        new StartGameResponsePayload(gameSession.getId())
+                )
+        );
     }
 
     public record StartGameRequestPayload(
             int width,
             int height,
             int turnRate
+    ) {
+    }
+
+    public record StartGameResponsePayload(
+            String gameSessionId
     ) {
     }
 }

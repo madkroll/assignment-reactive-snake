@@ -2,12 +2,12 @@ package com.madkroll.snake.state;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.springframework.web.reactive.socket.WebSocketSession;
+import reactor.core.publisher.Sinks;
 
 @Getter
 @AllArgsConstructor
 public class Player {
 
     String id;
-    WebSocketSession session;
+    Sinks.Many<String> feed;
 }

@@ -13,6 +13,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class GameConfiguration {
 
     @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
+    }
+
+    @Bean
     public Map<String, GameSession> activeSessionsRegistry() {
         return new ConcurrentHashMap<>();
     }
@@ -20,10 +25,5 @@ public class GameConfiguration {
     @Bean
     public Map<String, Player> connectedPlayersRegistry() {
         return new ConcurrentHashMap<>();
-    }
-
-    @Bean
-    public ObjectMapper objectMapper() {
-        return new ObjectMapper();
     }
 }

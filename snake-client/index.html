@@ -203,10 +203,9 @@
     if (data.type === 'active-sessions-response') {
       renderActiveSessions(data)
     } else if (data.type === 'start-game-response') {
-      renderGameSessionView(data.payload);
-      useGameSessionView();
-
       console.log("Session started:", data);
+      // renderGameSessionView(data.payload);
+      // useGameSessionView();
     }
   }
 
