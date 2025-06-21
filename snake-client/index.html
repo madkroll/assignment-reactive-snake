@@ -202,8 +202,10 @@
     const data = JSON.parse(message.data);
     if (data.type === 'active-sessions-response') {
       renderActiveSessions(data)
-    } else if (data.type === 'start-game-response') {
+    } else if (data.type === 'start-game-acknowledgement') {
       console.log("Session started:", data);
+
+      // subscribe on game session
       // renderGameSessionView(data.payload);
       // useGameSessionView();
     }

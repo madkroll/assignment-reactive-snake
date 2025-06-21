@@ -16,7 +16,7 @@ import java.util.Optional;
 public class StartGameRequestProcessor implements MessageProcessor {
 
     private static final String TYPE_START_GAME_REQUEST = "start-game-request";
-    private static final String TYPE_START_GAME_RESPONSE = "start-game-response";
+    private static final String TYPE_START_GAME_ACKNOWLEDGEMENT = "start-game-acknowledgement";
 
     private final ObjectMapper objectMapper;
     private final GameSessionManager gameSessionManager;
@@ -34,8 +34,8 @@ public class StartGameRequestProcessor implements MessageProcessor {
 
         return Optional.of(
                 new MessageData(
-                        TYPE_START_GAME_RESPONSE,
-                        new StartGameResponsePayload(gameSession.getId())
+                        TYPE_START_GAME_ACKNOWLEDGEMENT,
+                        new StartGameAcknowledgementPayload(gameSession.getId())
                 )
         );
     }
@@ -47,7 +47,7 @@ public class StartGameRequestProcessor implements MessageProcessor {
     ) {
     }
 
-    public record StartGameResponsePayload(
+    public record StartGameAcknowledgementPayload(
             String gameSessionId
     ) {
     }
