@@ -1,4 +1,4 @@
-package com.madkroll.snake.ws.events;
+package com.madkroll.snake.ws.event;
 
 public record PlayerConnected(
         String type,

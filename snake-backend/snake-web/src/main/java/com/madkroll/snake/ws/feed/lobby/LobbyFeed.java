@@ -1,9 +1,9 @@
-package com.madkroll.snake.ws;
+package com.madkroll.snake.ws.feed.lobby;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.madkroll.snake.context.GameSessionManager;
-import com.madkroll.snake.ws.events.MessageData;
+import com.madkroll.snake.ws.MessageData;
 import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +17,7 @@ import java.util.List;
 @Slf4j
 @Component
 @AllArgsConstructor
-public class ActiveGameSessionsBroadcaster {
+public class LobbyFeed {
 
     private final GameSessionManager gameSessionManager;
     private final ObjectMapper objectMapper;
@@ -37,7 +37,7 @@ public class ActiveGameSessionsBroadcaster {
                 .subscribe(sink::tryEmitNext);
     }
 
-    public Flux<String> subscribe() {
+    public Flux<String> provide() {
         log.info("Subscribed");
         return sink.asFlux()
                 .map(activeSessions -> new MessageData("active-sessions-response", activeSessions))

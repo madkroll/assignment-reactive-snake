@@ -1,8 +1,8 @@
 package com.madkroll.snake.context;
 
-import com.madkroll.snake.ws.events.StartGameRequested;
 import com.madkroll.snake.state.GameSession;
 import com.madkroll.snake.state.Grid;
+import com.madkroll.snake.ws.processor.StartGameRequestProcessor;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -16,8 +16,8 @@ public class GameSessionManager {
 
     private final Map<String, GameSession> activeSessionsRegistry;
 
-    public final GameSession startNewSession(final StartGameRequested startGameRequested) {
-        Grid grid = new Grid(startGameRequested.width(), startGameRequested.height());
+    public final GameSession startNewSession(final StartGameRequestProcessor.StartGameRequestPayload startGameRequestPayload) {
+        Grid grid = new Grid(startGameRequestPayload.width(), startGameRequestPayload.height());
 
         GameSession gameSession = new GameSession(
                 UUID.randomUUID().toString(),
