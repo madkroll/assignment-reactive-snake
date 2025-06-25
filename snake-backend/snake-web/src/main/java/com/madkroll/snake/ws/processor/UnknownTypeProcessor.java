@@ -1,5 +1,6 @@
 package com.madkroll.snake.ws.processor;
 
+import com.madkroll.snake.state.Player;
 import com.madkroll.snake.ws.MessageData;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -18,8 +19,8 @@ public class UnknownTypeProcessor implements MessageProcessor {
     }
 
     @Override
-    public Optional<MessageData> process(MessageData messageData) {
-        log.info("Message of unknown type received: {}", messageData);
+    public Optional<MessageData> process(MessageData messageData, Player player) {
+        log.info("Message of unknown type '{}' received from player {}", messageData, player.id());
         return Optional.of(
                 new MessageData(
                         "system-message",

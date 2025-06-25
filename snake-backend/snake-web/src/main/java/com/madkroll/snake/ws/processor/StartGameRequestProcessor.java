@@ -3,6 +3,7 @@ package com.madkroll.snake.ws.processor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.madkroll.snake.context.GameSessionManager;
 import com.madkroll.snake.state.GameSession;
+import com.madkroll.snake.state.Player;
 import com.madkroll.snake.ws.MessageData;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,16 +27,19 @@ public class StartGameRequestProcessor implements MessageProcessor {
         return TYPE_START_GAME_REQUEST;
     }
 
-    public Optional<MessageData> process(MessageData messageData) {
+    public Optional<MessageData> process(MessageData messageData, Player player) {
         GameSession gameSession = gameSessionManager.startNewSession(
                 objectMapper.convertValue(messageData.payload(), StartGameRequestPayload.class)
         );
         log.info("Game session started: {}", gameSession);
 
+        gameSession.players().add(player);
+        player.subscription().tryEmitNext(gameSession.feed());
+
         return Optional.of(
                 new MessageData(
                         TYPE_START_GAME_ACKNOWLEDGEMENT,
-                        new StartGameAcknowledgementPayload(gameSession.getId())
+                        new StartGameAcknowledgementPayload(gameSession.id())
                 )
         );
     }

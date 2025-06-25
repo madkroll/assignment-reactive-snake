@@ -2,7 +2,7 @@ package com.madkroll.snake.ws;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.madkroll.snake.state.Player;
-import com.madkroll.snake.ws.feed.lobby.LobbyFeed;
+import com.madkroll.snake.ws.feed.LobbyFeed;
 import com.madkroll.snake.ws.processor.MessageProcessor;
 import com.madkroll.snake.ws.processor.UnknownTypeProcessor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,9 +52,10 @@ public class GameWebSocketHandler implements WebSocketHandler {
     public Mono<Void> handle(WebSocketSession session) {
         final Player player = new Player(
                 UUID.randomUUID().toString(),
-                Sinks.many().unicast().onBackpressureBuffer()
+                Sinks.many().unicast().onBackpressureBuffer(),
+                Sinks.many().multicast().onBackpressureBuffer()
         );
-        connectedPlayersRegistry.put(player.getId(), player);
+        connectedPlayersRegistry.put(player.id(), player);
 
         Mono<Void> input =
                 session
@@ -64,31 +65,29 @@ public class GameWebSocketHandler implements WebSocketHandler {
                         .doOnNext(messageData -> applyProcessor(messageData, player))
                         .then();
 
-        Flux<WebSocketMessage> lobbySignals =
-                lobbyFeed
-                        .provide()
-                        .map(session::textMessage);
-
-        Flux<WebSocketMessage> playerSignals =
-                player.getFeed().asFlux().map(session::textMessage);
+        Flux<WebSocketMessage> allPlayerUpdatesFeed = Flux.merge(
+                        player.feed().asFlux(),
+                        Flux.switchOnNext(player.subscription().asFlux())
+                )
+                .map(session::textMessage)
+                .doOnSubscribe(subscription -> player.subscription().tryEmitNext(lobbyFeed.provide()));
 
         return session
-                .send(Flux.merge(lobbySignals, playerSignals))
+                .send(allPlayerUpdatesFeed)
                 .and(input)
                 .doOnTerminate(() -> {
-                    player.getFeed().tryEmitComplete();
-                    connectedPlayersRegistry.remove(player.getId());
+                    player.feed().tryEmitComplete();
+                    player.subscription().tryEmitComplete();
+                    connectedPlayersRegistry.remove(player.id());
                 });
     }
 
     private void applyProcessor(MessageData messageData, Player player) {
         messageProcessors
                 .getOrDefault(messageData.type(), unknownTypeProcessor)
-                .process(messageData)
+                .process(messageData, player)
                 .map(this::writeResponseMessage)
-                .ifPresent(responseMessage -> {
-                    player.getFeed().tryEmitNext(responseMessage);
-                });
+                .ifPresent(responseMessage -> player.feed().tryEmitNext(responseMessage));
     }
 
     private String writeResponseMessage(MessageData messageData) {
