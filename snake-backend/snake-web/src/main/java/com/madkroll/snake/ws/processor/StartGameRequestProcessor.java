@@ -33,7 +33,7 @@ public class StartGameRequestProcessor implements MessageProcessor {
         );
         log.info("Game session started: {}", gameSession);
 
-        gameSession.players().add(player);
+        gameSession.gameState().players().add(player);
         player.subscription().tryEmitNext(gameSession.feed());
 
         return Optional.of(
