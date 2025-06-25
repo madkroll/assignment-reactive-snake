@@ -61,12 +61,30 @@ public class GameSessionManager {
 
     private String gameTurnAsJson(GameState gameState) {
         try {
-            log.info("next turn: {}", gameState.turn().get());
+            GameTurnUpdate gameTurnUpdate =
+                    new GameTurnUpdate(
+                            gameState.turn().get(),
+                            gameState.grid().getWidth(),
+                            gameState.grid().getHeight(),
+                            gameState.players().size(),
+                            gameState.grid().getRenderables()
+                    );
+
+            log.info("next turn: {}", gameTurnUpdate);
             return objectMapper.writeValueAsString(
-                    new MessageData("game-turn", gameState.turn().get())
+                    new MessageData("game-turn-update", gameTurnUpdate)
             );
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private record GameTurnUpdate(
+            long turn,
+            int width,
+            int height,
+            int playersCount,
+            String[][] renderables
+    ) {
     }
 }

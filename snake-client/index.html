@@ -204,10 +204,9 @@
       renderActiveSessions(data)
     } else if (data.type === 'start-game-acknowledgement') {
       console.log("Session started:", data);
-
-      // subscribe on game session
-      // renderGameSessionView(data.payload);
-      // useGameSessionView();
+      useGameSessionView();
+    } else if (data.type === 'game-turn-update') {
+      renderGameSessionView(data.payload);
     }
   }
 
@@ -260,17 +259,20 @@
   }
 
   function renderGameSessionView(result) {
-    const width = result.grid.width;
-    const height = result.grid.height;
+    const width = result.width;
+    const height = result.height;
 
     const grid = document.getElementById('grid');
     grid.style.gridTemplateColumns = `repeat(${width}, 20px)`;
+
+    // Clear the previous grid content
+    grid.innerHTML = '';
 
     for (let i = 0; i < width * height; i++) {
       const cell = document.createElement('div');
       const x = toX(i, width);
       const y = toY(i, width);
-      if (result.grid.renderables[x][y] === "fruit") {
+      if (result.renderables[x][y] === "fruit") {
         cell.classList.add('fruit');
       } else {
         cell.classList.add('cell');
